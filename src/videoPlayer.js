@@ -8,6 +8,7 @@ export default function videoPlayer() {
     const playerRef = React.useRef(null);
     const [elapsed, setElapsed] = useState(0);
     const [duration, setDuration] = useState(0)
+    const [seek, setSeek] = useState(0)
 
     useEffect(() => {
         const interval = setInterval(async () => {
@@ -23,26 +24,19 @@ export default function videoPlayer() {
         };
     }, []);
 
-    useEffect(() => {
-        let calculateDuration = async () => {
-            const duration = await playerRef.current.getDuration();
-            const ms = Math.floor(duration * 1000);
-            const min = Math.floor(ms / 60000);
-            setDuration(min)
-        }
-        calculateDuration()
-    }, [playerRef])
+    async function calculateDuration() {
+        const duration = await playerRef.current.getDuration();
+        const ms = Math.floor(duration * 1000);
+        const min = Math.floor(ms / 60000);
+        setDuration(min)
+    }
 
-    const memoized = React.useMemo(() => {
+    useEffect(() => {
         if (parseFloat(elapsed) > 0 && parseFloat(duration) > 0) {
             let result = (parseFloat(elapsed) / parseFloat(duration)) * 100;
-            console.log({ result });
-            return parseFloat(result)
+            setSeek(parseFloat(result))
         }
     }, [duration, elapsed])
-
-
-    console.log({ memoized });
 
     return (
         <SafeAreaView style={{ flexDirection: 'row' }}>
@@ -53,22 +47,23 @@ export default function videoPlayer() {
                     play={true}
                     videoId={"q_AJK75oaqA"}
                     mute={true}
+                    onReady={() => calculateDuration()}
                 />
             </View>
             <View style={styles.centerContent}>
                 <Text>Course Content</Text>
                 <View style={styles.row}>
-                    <Ionicons name='checkmark-circle' size={20} style={memoized >= 33 && styles.successText} />
+                    <Ionicons name='checkmark-circle' size={20} style={seek >= 33 && styles.successText} />
                     <Text>  33%</Text>
                 </View>
 
                 <View style={styles.row}>
-                    <Ionicons name='checkmark-circle' size={20} style={memoized >= 66 && styles.successText} />
+                    <Ionicons name='checkmark-circle' size={20} style={seek >= 66 && styles.successText} />
                     <Text>  66%</Text>
                 </View>
 
                 <View style={styles.row}>
-                    <Ionicons name='checkmark-circle' size={20} style={memoized >= 100 && styles.successText} />
+                    <Ionicons name='checkmark-circle' size={20} style={seek >= 100 && styles.successText} />
                     <Text>100%</Text>
                 </View>
             </View>
